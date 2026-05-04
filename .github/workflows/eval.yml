@@ -12,10 +12,10 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4  # Also upgrade checkout to v4
     
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3  # Latest version
     
     - name: Build containers
       run: docker-compose build
@@ -36,7 +36,7 @@ jobs:
         done
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5  # Upgrade to v5
       with:
         python-version: '3.11'
     
@@ -51,7 +51,7 @@ jobs:
       run: python run_eval.py
     
     - name: Upload evaluation results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # ✅ FIXED: Changed from v3 to v4
       if: always()
       with:
         name: eval-results
