@@ -1,0 +1,7 @@
+Invoke-RestMethod -Uri "http://localhost:8000/check" -Method POST -ContentType "application/json" -Body '{"password":"HelloWorld123"}'
+
+
+
+
+# View all history
+Invoke-RestMethod -Uri "http://localhost:8000/history" -Method GET | ConvertTo-Json -Depth 10

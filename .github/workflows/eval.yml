@@ -1,0 +1,68 @@
+name: Password Strength Agent CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build containers
+      run: docker-compose build
+    
+    - name: Start services
+      run: docker-compose up -d
+    
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for API to be ready..."
+        for i in {1..30}; do
+          if curl -s http://localhost:8000/health > /dev/null; then
+            echo "API is ready!"
+            break
+          fi
+          echo "Waiting... ($i/30)"
+          sleep 2
+        done
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+    
+    - name: Run evaluation
+      env:
+        API_URL: http://localhost:8000
+      run: python run_eval.py
+    
+    - name: Upload evaluation results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: eval-results
+        path: eval_results.json
+    
+    - name: Stop containers
+      if: always()
+      run: docker-compose down
+    
+    - name: Check evaluation status
+      if: failure()
+      run: |
+        echo "❌ CI pipeline failed due to metric thresholds"
+        exit 1
